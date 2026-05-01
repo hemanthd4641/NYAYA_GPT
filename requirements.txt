@@ -8,3 +8,8 @@ sentence-transformers
 python-dotenv
 tavily-python
 streamlit
+fpdf2
+streamlit-mic-recorder
+groq
+PyPDF2
+

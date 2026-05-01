@@ -51,6 +51,7 @@ def search_ipc_sections(query: str) -> list[dict]:
             "section_title": doc.metadata.get("section_title"),
             "chapter": doc.metadata.get("chapter"),
             "chapter_title": doc.metadata.get("chapter_title"),
+            "state": doc.metadata.get("state", "Central"),
             "content": doc.page_content
         }
         for doc in docs

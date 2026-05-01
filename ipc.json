@@ -4023,5 +4023,25 @@
     "Section": 511,
     "section_title": "Punishment for attempting to commit offences punishable with imprisonment for life or other imprisonment",
     "section_desc": "Whoever attempts to commit an offence punishable by this Code with imprisonment for life or imprisonment, or to cause such an offence to be committed, and in such attempt does any act towards the commission of the offence, shall, where no express provision is made by this Code for the punishment of such attempt, be punished with imprisonment of any description provided for the offence, for a term which may extend to one-half of the imprisonment for life or, as the case may be, one-half of the longest term of imprisonment provided for that offence, or with such fine as is provided for the offence, or with both."
+  },
+  {
+    "chapter": 17,
+    "chapter_title": "OFFENCES AGAINST PROPERTY",
+    "Section": "379A",
+    "section_title": "Snatching (Haryana Amendment)",
+    "section_desc": "Whoever, with the intention to commit theft, suddenly or quickly or forcibly seizes or secures or grabs or takes away from any person or from his possession any moveable property, is said to commit snatching.",
+    "state": "Haryana",
+    "punishment": "Rigorous imprisonment for 7-10 years",
+    "fine": "Specific fine amount",
+    "bailability": "Non-Bailable",
+    "cognizability": "Cognizable"
+  },
+  {
+    "chapter": 16,
+    "chapter_title": "OFFENCES AFFECTING THE HUMAN BODY",
+    "Section": "304A",
+    "section_title": "Causing death by negligence (Maharashtra Amendment)",
+    "section_desc": "In the State of Maharashtra, specific procedural guidelines apply for investigations involving medical negligence under this section to ensure protection for registered medical practitioners.",
+    "state": "Maharashtra"
   }
 ]

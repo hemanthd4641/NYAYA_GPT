@@ -1,9 +1,8 @@
 # legal_precedent_agent.py
 
-from crewai import Agent, LLM
+from crewai import Agent
+from agents.llm_config import get_smart_llm
 from tools.legal_precedent_search_tool import search_legal_precedents
-
-llm = LLM(model="groq/llama-3.3-70b-versatile", temperature=0)
 
 legal_precedent_agent = Agent(
     role="Legal Precedent Agent",
@@ -14,6 +13,6 @@ legal_precedent_agent = Agent(
         "Your task is to search trusted legal databases to support legal analysis with past judgments."
     ),
     tools=[search_legal_precedents],
-    llm=llm,
+    llm=get_smart_llm(temperature=0),
     verbose=True,
 )

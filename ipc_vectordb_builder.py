@@ -40,7 +40,8 @@ def prepare_documents(ipc_data: list[dict]) -> list[Document]:
                 "chapter": entry["chapter"],
                 "chapter_title": entry["chapter_title"],
                 "section": entry["Section"],
-                "section_title": entry["section_title"]
+                "section_title": entry["section_title"],
+                "state": entry.get("state", "Central") # Default to Central if no state specified
             }
         )
         for entry in ipc_data

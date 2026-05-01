@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  legal-assistant:
+    build: .
+    image: legal-assistant:latest
+    container_name: legal_assistant_app
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - ./legal_chat_history.db:/app/legal_chat_history.db
+      - ./chroma_vectordb:/app/chroma_vectordb
+    restart: unless-stopped
+
+volumes:
+  chroma_vectordb:
+  legal_chat_history:

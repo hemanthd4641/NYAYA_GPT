@@ -1,13 +1,7 @@
 # case_intake_agent.py
 
-from crewai import Agent, LLM
-
-
-# agent specific LLM - can also be configured din .env file
-llm = LLM(
-    model="groq/llama-3.3-70b-versatile",
-    temperature=0
-)
+from crewai import Agent
+from agents.llm_config import get_llm
 
 case_intake_agent = Agent(
     role="Case Intake Agent",
@@ -22,8 +16,7 @@ case_intake_agent = Agent(
         " and extract relevant context "
         "to pass along to legal researchers, drafters, or compliance teams."
     ),
-    llm=llm,
+    llm=get_llm(temperature=0),
     tools=[],
     verbose=True,
 )
-

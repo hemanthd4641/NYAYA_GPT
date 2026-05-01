@@ -1,9 +1,9 @@
 # ipc_section_agent.py
+# LEGACY: This agent is replaced by legal_research_agent.py but kept for backward compatibility.
 
-from crewai import Agent, LLM
+from crewai import Agent
+from agents.llm_config import get_llm
 from tools.ipc_sections_search_tool import search_ipc_sections
-
-llm = LLM(model="groq/llama-3.3-70b-versatile", temperature=0.3)
 
 ipc_section_agent = Agent(
     role="IPC Section Agent",
@@ -14,6 +14,6 @@ ipc_section_agent = Agent(
         "Your insight helps lawyers and assistants quickly understand the statutory basis of a case."
     ),
     tools=[search_ipc_sections],
-    llm=llm,
+    llm=get_llm(temperature=0.3),
     verbose=True,
 )

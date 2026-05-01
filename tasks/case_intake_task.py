@@ -11,7 +11,7 @@ case_intake_task = Task(
         "{user_input}\n\n"
         "Your job is to interpret it, identify the core legal issue, classify the legal domain "
         "(e.g., civil, criminal, labor), and return a structured JSON with: "
-        "`case_type`, `legal_domain`, `summary`, `relevant_entities`, and `jurisdiction` (if any)."
+        "`case_type`, `legal_domain`, `state_name`, `summary`, `relevant_entities`, and `jurisdiction`."
     ),
     expected_output=(
         "```json\n"

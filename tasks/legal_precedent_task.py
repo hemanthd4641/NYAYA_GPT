@@ -3,7 +3,7 @@
 from crewai import Task
 from agents.legal_precedent_agent import legal_precedent_agent
 from tasks.case_intake_task import case_intake_task
-from tasks.ipc_section_task import ipc_section_task
+from tasks.legal_research_task import legal_research_task
 
 legal_precedent_task = Task(
     agent=legal_precedent_agent,
@@ -17,5 +17,5 @@ legal_precedent_task = Task(
     expected_output=(
         "A detailed paragraph summarizing the most relevant precedent cases and explaining their legal relevance to the current issue."
     ),
-    context=[case_intake_task, ipc_section_task]
+    context=[case_intake_task, legal_research_task]
 )
