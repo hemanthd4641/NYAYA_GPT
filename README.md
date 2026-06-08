@@ -9,7 +9,8 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-Chat%20UI-FF4B4B?style=flat-square&logo=streamlit)](https://streamlit.io/)
 [![CrewAI](https://img.shields.io/badge/CrewAI-Multi--Agent-8B5CF6?style=flat-square)](https://crewai.com/)
 [![Groq](https://img.shields.io/badge/Groq-LLaMA%203.1-F97316?style=flat-square)](https://groq.com/)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Search-22C55E?style=flat-square)](https://www.trychroma.com/)
+[![Pinecone](https://img.shields.io/badge/Pinecone-Vector%20Database-blueviolet?style=flat-square)](https://www.pinecone.io/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square)](https://supabase.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 **An AI-powered legal research platform that combines 11 specialized agents, 6 Indian law databases, voice input, document auditing, and a ChatGPT-style interface — all in one tool.**
@@ -32,7 +33,7 @@ Whether you are filing an FIR, auditing a contract, researching cybercrime laws,
 
 ### 💬 ChatGPT-Style Conversational Interface
 - Natural multi-turn legal conversations
-- Full **chat history** saved to a local SQLite database
+- Full **chat history** saved securely to a cloud **Supabase PostgreSQL database**
 - Browse, reload, and delete past conversations from the sidebar
 - Fresh, clean session on every new browser visit
 - **➕ New Chat** button for instant new conversations
@@ -101,7 +102,7 @@ User Query (Text / Voice / Document)
           ▼
 ┌─────────────────────────────────────┐
 │      Streamlit Chat Interface       │
-│  (ChatGPT UI + SQLite History)      │
+│  (ChatGPT UI + Supabase History)    │
 └──────────────┬──────────────────────┘
                │
                ▼
@@ -113,7 +114,7 @@ User Query (Text / Voice / Document)
        ├─► 1. Case Intake Agent
        ├─► 2. Legal Chronologist (Timeline)
        ├─► 3. Lawyer Matchmaker
-       ├─► 4. Multi-Act Legal Researcher ──► ChromaDB (6 Collections)
+       ├─► 4. Multi-Act Legal Researcher ──► Pinecone (6 Namespaces/Indexes)
        ├─► 5. State Law Researcher ──────► Tavily Web Search
        ├─► 6. Legal Document Auditor
        ├─► 7. Procedural Expert (Bail & Fine)
@@ -138,10 +139,10 @@ User Query (Text / Voice / Document)
 | 1 | **Case Intake Agent** | Classifies the legal issue and extracts key facts | — |
 | 2 | **Legal Chronologist** | Extracts dates and builds a case timeline | — |
 | 3 | **Lawyer Matchmaker** | Recommends the right type of legal specialist | — |
-| 4 | **Multi-Act Legal Researcher** | Searches all 6 law databases simultaneously | ChromaDB RAG |
+| 4 | **Multi-Act Legal Researcher** | Searches all 6 law databases simultaneously | Pinecone RAG |
 | 5 | **State Law Researcher** | Finds state-specific amendments and variations | Tavily Search |
 | 6 | **Legal Document Auditor** | Scans uploaded documents for loopholes | Vision AI |
-| 7 | **Procedural Law Expert** | Calculates bail status, fines & imprisonment | ChromaDB RAG |
+| 7 | **Procedural Law Expert** | Calculates bail status, fines & imprisonment | Pinecone RAG |
 | 8 | **Case Outcome Predictor** | Estimates success probability and timelines | — |
 | 9 | **Evidence Checklist Specialist** | Builds a personalized court evidence list | — |
 | 10 | **Legal Precedent Agent** | Searches for real court case precedents | Tavily Search |
@@ -153,15 +154,13 @@ User Query (Text / Voice / Document)
 
 The platform ships with complete vector databases for all major Indian laws:
 
-```
-chroma_vectordb/
-├── ipc_collection/          # 511+ sections of IPC
-├── crpc_collection/         # Code of Criminal Procedure
-├── iea_collection/          # Indian Evidence Act
-├── it_act_collection/       # Information Technology Act, 2000
-├── pocso_collection/        # POCSO Act, 2012
-└── consumer_collection/     # Consumer Protection Act, 2019
-```
+Pinecone Namespaces:
+- `ipc_collection`          # 511+ sections of IPC
+- `crpc_collection`         # Code of Criminal Procedure
+- `iea_collection`          # Indian Evidence Act
+- `it_act_collection`       # Information Technology Act, 2000
+- `pocso_collection`        # POCSO Act, 2012
+- `consumer_collection`     # Consumer Protection Act, 2019
 
 ---
 
@@ -188,14 +187,17 @@ Create a `.env` file in the project root:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 TAVILY_API_KEY=your_tavily_api_key_here
-PERSIST_DIRECTORY_PATH=./chroma_vectordb
+PINECONE_API_KEY=your_pinecone_api_key_here
+PINECONE_ENV=your_pinecone_environment
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_KEY=your_supabase_anon_key_here
 ```
 
 ### 4. Build the Legal Vector Databases
 ```bash
 python legal_vectordb_builder.py
 ```
-> ⏳ This downloads the embedding model and indexes all 6 law collections. Only needed once.
+> ⏳ This downloads the embedding model and indexes all 6 law collections into Pinecone. Only needed once.
 
 ### 5. Run the Application
 ```bash
@@ -242,12 +244,12 @@ After any analysis, click **"📥 Download Official Legal Report (PDF)"**
 | **Frontend** | Streamlit (ChatGPT-style UI) |
 | **Agent Orchestration** | CrewAI |
 | **LLM** | Groq LLaMA 3.1 8B Instant |
-| **Vector Database** | ChromaDB |
+| **Vector Database** | Pinecone |
 | **Embeddings** | Sentence-Transformers (all-mpnet-base-v2) |
 | **Web Search** | Tavily API |
 | **PDF Generation** | fpdf2 |
 | **Voice Input** | Groq Whisper via streamlit-mic-recorder |
-| **Chat History** | SQLite (local, persistent) |
+| **Chat History** | Supabase PostgreSQL (cloud) |
 | **Document Parsing** | PyPDF2 |
 
 ---
@@ -259,7 +261,7 @@ ai-legal-assistant-crewai/
 ├── app.py                      # Main Streamlit application
 ├── crew.py                     # CrewAI crew definition
 ├── run_app.py                  # Application launcher
-├── legal_vectordb_builder.py   # Builds ChromaDB collections
+├── legal_vectordb_builder.py   # Builds Pinecone collections
 ├── .env                        # API keys (not committed)
 │
 ├── agents/                     # 9 Specialized AI Agents
@@ -322,7 +324,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 <div align="center">
 
-**Built with ❤️ using CrewAI, Groq, and ChromaDB**
+**Built with ❤️ using CrewAI, Groq, Pinecone, and Supabase**
 
 *Making legal knowledge accessible to everyone in India*
 
