@@ -1,44 +1,53 @@
 # query_vectordb.py
 
 import os
-
+import logging
 from dotenv import load_dotenv
-from langchain_chroma import Chroma
+from langchain_pinecone import PineconeVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-persist_directory_name = os.getenv("PERSIST_DIRECTORY_NAME")
+def main():
+    pinecone_api_key = os.getenv("PINECONE_API_KEY")
+    index_name = os.getenv("PINECONE_INDEX_NAME", "nyaya-gpt")
+    namespace = "ipc"
 
-base_path = os.path.dirname(os.path.abspath(__file__))
-persist_directory_path = os.path.join(base_path, persist_directory_name)
+    if not pinecone_api_key:
+        logger.error("PINECONE_API_KEY is not set in environment.")
+        return
 
+    query = "What is the IPC section for Theft?"
+    logger.info(f"Querying Pinecone index '{index_name}' under namespace '{namespace}' for: '{query}'...")
 
-query = "What is the IPC section for Theft?"
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
-db = Chroma(
-    collection_name="ipc_collection",
-    persist_directory=persist_directory_path,
-    embedding_function=HuggingFaceEmbeddings()
-)
+    db = PineconeVectorStore(
+        index_name=index_name,
+        embedding=embeddings,
+        pinecone_api_key=pinecone_api_key,
+        namespace=namespace
+    )
 
-docs = db.similarity_search(query, k=3)
+    docs = db.similarity_search(query, k=3)
 
-# print(docs[0].page_content)
-# print(docs)
+    result = []
+    for doc in docs:
+        result.append({
+            "section": doc.metadata.get("section"),
+            "section_title": doc.metadata.get("section_title"),
+            "chapter": doc.metadata.get("chapter"),
+            "chapter_title": doc.metadata.get("chapter_title"),
+            "content": doc.page_content
+        })
 
+    logger.info("Results:")
+    for r in result:
+        print(r)
 
-
-result = []
-
-for doc in docs:
-    result.append({
-        "section": doc.metadata.get("section"),
-        "section_title": doc.metadata.get("section_title"),
-        "chapter": doc.metadata.get("chapter"),
-        "chapter_title": doc.metadata.get("chapter_title"),
-        "content": doc.page_content
-    })
-
-print(result)
+if __name__ == "__main__":
+    main()

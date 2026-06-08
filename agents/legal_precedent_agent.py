@@ -2,7 +2,7 @@
 
 from crewai import Agent
 from agents.llm_config import get_smart_llm
-from tools.legal_precedent_search_tool import search_legal_precedents
+from tools.agent_tools.legal_precedent_search_tool import search_legal_precedents
 
 legal_precedent_agent = Agent(
     role="Legal Precedent Agent",

@@ -3,7 +3,8 @@ crewai-tools
 langchain-community
 langchain
 langchain-huggingface
-langchain-chroma
+pinecone
+langchain-pinecone
 sentence-transformers
 python-dotenv
 tavily-python
@@ -12,4 +13,6 @@ fpdf2
 streamlit-mic-recorder
 groq
 PyPDF2
+supabase
+psycopg2-binary
 

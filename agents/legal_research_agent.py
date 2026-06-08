@@ -2,7 +2,7 @@
 
 from crewai import Agent
 from agents.llm_config import get_smart_llm
-from tools.legal_search_tool import search_all_laws
+from tools.agent_tools.legal_search_tool import search_all_laws
 
 legal_research_agent = Agent(
     role="Multi-Act Legal Researcher",

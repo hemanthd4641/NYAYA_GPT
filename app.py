@@ -1,28 +1,62 @@
 # app.py
 
+import sys
+if sys.stdout.encoding != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
+if sys.stderr.encoding != 'utf-8':
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
+
 import streamlit as st
 from datetime import datetime
 from dotenv import load_dotenv
 from crew import legal_assistant_crew
-from tools.pdf_generator import generate_legal_pdf
-from tools.voice_handler import transcribe_audio
-from tools.file_processor import extract_text_from_pdf, analyze_image_with_groq
-from tools.history_manager import (
+from tools.utils.pdf_generator import generate_legal_pdf
+from tools.utils.voice_handler import transcribe_audio
+from tools.utils.file_processor import extract_text_from_pdf, analyze_image_with_groq
+from tools.utils.history_manager import (
     init_db, create_session, save_message,
-    get_all_sessions, get_messages, delete_session, update_session_title
+    get_all_sessions, get_messages, delete_session, update_session_title,
+    store_uploaded_document
 )
+import database.chat_repository as repo
 from streamlit_mic_recorder import mic_recorder
 
 load_dotenv()
-init_db()  # Initialize SQLite database on startup
+init_db()  # Initialize database mapping (no-op on Supabase)
 
 st.set_page_config(page_title="AI Legal Assistant", page_icon="⚖️", layout="wide")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Sidebar
+# Sidebar & Authentication
 # ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## ⚖️ AI Legal Assistant")
+    st.divider()
+
+    st.markdown("### 👤 User Account")
+    email_input = st.text_input("Enter Email to Login/Register:", value="guest@example.com")
+    
+    # Trigger authentication if email changes or not set yet
+    if "user_email" not in st.session_state or st.session_state.user_email != email_input:
+        st.session_state.user_email = email_input
+        with st.spinner("Authenticating user..."):
+            try:
+                st.session_state.supabase_client = repo.get_authenticated_client(email_input)
+                st.session_state.user_id = repo.get_or_create_user(email_input)["id"]
+                st.session_state.current_session_id = None
+                st.session_state.messages = []
+                st.session_state.legal_result = None
+                st.toast(f"Logged in as {email_input}", icon="👤")
+            except Exception as e:
+                st.error(f"Authentication failed: {e}")
+                st.stop()
+
     st.divider()
 
     # New Chat Button
@@ -34,6 +68,7 @@ with st.sidebar:
 
     st.markdown("### 📂 Chat History")
 
+    # Load sessions from Supabase
     all_sessions = get_all_sessions()
     if not all_sessions:
         st.caption("No previous conversations yet.")
@@ -41,9 +76,9 @@ with st.sidebar:
         for session in all_sessions:
             col1, col2 = st.columns([5, 1])
             with col1:
-                # Format the last updated timestamp nicely
+                # Format timestamps
                 try:
-                    dt = datetime.fromisoformat(session["last_updated"])
+                    dt = datetime.fromisoformat(session["created_at"].replace("Z", "+00:00"))
                     label = f"{session['title'][:28]}{'...' if len(session['title']) > 28 else ''}"
                     caption = dt.strftime("%d %b %Y, %I:%M %p")
                 except Exception:
@@ -81,7 +116,7 @@ with st.sidebar:
         st.success(f"{len(uploaded_files)} file(s) uploaded.")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Initialize Session State (clears fresh on every new browser session)
+# Initialize Session State
 # ─────────────────────────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -94,7 +129,7 @@ if "current_session_id" not in st.session_state:
 # Main Chat Area
 # ─────────────────────────────────────────────────────────────────────────────
 st.title("⚖️ Personal AI Legal Assistant")
-st.markdown("Conversational legal aid at your fingertips. Upload documents, speak, or type your issue.")
+st.markdown(f"Conversational legal aid at your fingertips. Active User: **{st.session_state.user_email}**")
 
 # Display chat messages from current session
 for message in st.session_state.messages:
@@ -142,6 +177,13 @@ if prompt := st.chat_input("Describe your legal issue..."):
     if uploaded_files:
         with st.status("📄 Processing uploaded files...", expanded=False) as status:
             for uploaded_file in uploaded_files:
+                # Log upload to database under active session
+                store_uploaded_document(
+                    session_id=st.session_state.current_session_id,
+                    file_name=uploaded_file.name,
+                    file_type=uploaded_file.type
+                )
+                
                 if uploaded_file.type == "application/pdf":
                     st.write(f"Extracting text from {uploaded_file.name}...")
                     file_context += f"\n[Document: {uploaded_file.name}]\n" + extract_text_from_pdf(uploaded_file)
@@ -152,11 +194,21 @@ if prompt := st.chat_input("Describe your legal issue..."):
 
     # Run Legal Crew
     with st.chat_message("assistant"):
-        with st.spinner("⚖️ Analyzing your case across multiple Acts..."):
+        with st.status("⚖️ Analyzing your case across multiple Acts...", expanded=True) as status:
+            def task_completed_callback(output):
+                agent_name = output.agent if output.agent else "Legal Agent"
+                st.markdown(f"---")
+                st.markdown(f"### 🤖 {agent_name}")
+                st.markdown(output.raw)
+
+            # Register callback dynamically
+            legal_assistant_crew.task_callback = task_completed_callback
+
             full_input = f"{prompt}\n\n{file_context}"
             try:
                 result = legal_assistant_crew.kickoff(inputs={"user_input": full_input})
                 response = result if isinstance(result, str) else str(result)
+                status.update(label="✅ Analysis Complete!", state="complete", expanded=False)
             except Exception as e:
                 err = str(e)
                 if "rate_limit_exceeded" in err or "429" in err:
@@ -168,12 +220,13 @@ if prompt := st.chat_input("Describe your legal issue..."):
                     )
                 else:
                     response = f"❌ **An error occurred**: {err}"
+                status.update(label="❌ Analysis Failed", state="error", expanded=True)
 
-            st.markdown(response)
-            st.session_state.legal_result = response
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            # Save assistant response to DB
-            save_message(st.session_state.current_session_id, "assistant", response)
+        st.markdown(response)
+        st.session_state.legal_result = response
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        # Save assistant response to DB
+        save_message(st.session_state.current_session_id, "assistant", response)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PDF Export

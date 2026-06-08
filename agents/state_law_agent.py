@@ -2,7 +2,7 @@
 
 from crewai import Agent
 from agents.llm_config import get_smart_llm
-from tools.state_law_search_tool import state_law_variations_tool
+from tools.agent_tools.state_law_search_tool import state_law_variations_tool
 
 state_law_agent = Agent(
     role="State Law Researcher",

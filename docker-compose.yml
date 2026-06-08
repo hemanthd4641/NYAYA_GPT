@@ -11,9 +11,7 @@ services:
       - .env
     volumes:
       - ./legal_chat_history.db:/app/legal_chat_history.db
-      - ./chroma_vectordb:/app/chroma_vectordb
     restart: unless-stopped
 
 volumes:
-  chroma_vectordb:
   legal_chat_history:
