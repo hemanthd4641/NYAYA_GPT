@@ -222,11 +222,6 @@ The assistant will automatically:
 - Search for **similar court cases**
 - Generate a complete **FIR draft**
 
-### Upload a Document for Audit
-1. Click **"📁 Documents & Evidence"** in the sidebar
-2. Upload a contract, notice, or existing FIR
-3. Ask: `"Find loopholes in this contract"`
-
 ### Use Voice Input
 1. Click **"🎤 Record"**
 2. Speak your legal issue
