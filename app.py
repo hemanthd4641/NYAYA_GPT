@@ -105,15 +105,6 @@ with st.sidebar:
                         st.session_state.legal_result = None
                     st.rerun()
 
-    st.divider()
-    st.markdown("### 📁 Documents & Evidence")
-    uploaded_files = st.file_uploader(
-        "Upload PDF documents or Image evidence:",
-        type=["pdf", "png", "jpg", "jpeg"],
-        accept_multiple_files=True
-    )
-    if uploaded_files:
-        st.success(f"{len(uploaded_files)} file(s) uploaded.")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Initialize Session State
@@ -136,16 +127,25 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Voice Input
-col1, col2 = st.columns([1, 4])
+# Voice and Document Input
+col1, col2, col3 = st.columns([1, 1, 3])
 with col1:
     audio = mic_recorder(
-        start_prompt="🎤 Record",
-        stop_prompt="🛑 Stop",
+        start_prompt="🎤 Voice Record",
+        stop_prompt="🛑 Stop Recording",
         just_once=True,
         key="recorder"
     )
 
+with col2:
+    with st.popover("📎 Attach Files"):
+        uploaded_files = st.file_uploader(
+            "Upload PDF documents or Image evidence:",
+            type=["pdf", "png", "jpg", "jpeg"],
+            accept_multiple_files=True
+        )
+        if uploaded_files:
+            st.success(f"{len(uploaded_files)} file(s) uploaded.")
 if audio:
     with st.spinner("🎧 Transcribing..."):
         transcription = transcribe_audio(audio['bytes'])
